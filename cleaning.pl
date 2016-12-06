@@ -4,8 +4,15 @@ use 5.14.0;
 
 use warnings;
 use strict;
+no warnings 'experimental::smartmatch'; # removing 'given / when' warnings.
 
-use File::Copy qw/move/;
+use File::Copy qw( move );
+use File::Path qw( make_path );
+
+use IO::Prompter {
+    ask_yesno  => [-yesno, -echo => "yes/no"],
+    where      => ["destination: "],
+};
 
 sub iterate_through {
     my ($path) = @_;
@@ -25,23 +32,6 @@ sub iterate_through {
     };
 }
 
-sub prompt {
-    my ($sentence) = @_;
-    
-    print("$sentence(y/n) ");
-    chomp(my $answer = <STDIN>);
-    if ($answer =~ /n/) {
-        return "n";
-    } else {
-        return "y";
-    }
-}
-
-sub where {
-    print("destination: ");
-    chomp(my $destination = <STDIN>);
-    return $destination;
-}
 
 sub update {
     my ($path, $old_filename, $new_filename) = @_;
@@ -51,7 +41,7 @@ sub update {
 my $path = ".";
 my $iterator = iterate_through($path);
 while (my $filename = $iterator->()) {
-    given (prompt "rename $filename") {
+    given (ask_yesno "rename $filename") {
         when ("y") {
             my $destination = where();
             say "destination : $destination";
