@@ -6,6 +6,8 @@ use warnings;
 use strict;
 no warnings 'experimental::smartmatch'; # removing 'given / when' warnings.
 
+use constant DEVEL_MODE => 1;
+
 use Cwd;
 use File::Copy qw( move );
 use File::Path qw( make_path );
@@ -32,8 +34,14 @@ my $main_separator  = "*"x60;
 my $inner_separator = "-"x40;   
 
 
-
-
+# In order not to create or modify files while developping
+if (DEVEL_MODE) {
+    no strict 'refs';
+    no warnings 'redefine';
+    for (qw(move make_path)) {
+	*{$_} = eval qq(sub { say "+++$_(",join(",",map{qq{"\$_"}}\@_),")" });
+    }
+}
 
 ############################################################
 ###                  Action functions
